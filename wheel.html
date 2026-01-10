@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names - Random Name Picker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .wheel-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1;
+        }
+
+        #wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        #wheelCanvas:hover {
+            transform: scale(1.02);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #ff6b6b;
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .winner-display {
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #nameInput {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #nameInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-success {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-large {
+            padding: 15px 30px;
+            font-size: 18px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .names-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .name-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .name-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .name-text {
+            flex: 1;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .btn-remove {
+            padding: 5px 12px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .btn-remove:hover {
+            background: #ff5252;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .spinning {
+            animation: spin 0.1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group .btn {
+            flex: 1;
+        }
+
+        .spin-controls {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .spin-controls label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider-value {
+            min-width: 80px;
+            text-align: center;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider-info {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .live-section {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .live-section.viewer {
+            background: linear-gradient(135deg, #4dabf7 0%, #339af0 100%);
+        }
+
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .room-id-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .room-id-display {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .room-id-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .room-id-text {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .btn-copy {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .btn-copy:hover {
+            background: #5568d3;
+        }
+
+        .btn-join {
+            padding: 10px 20px;
+            background: #51cf66;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .btn-join:hover {
+            background: #40c057;
+        }
+
+        .viewer-mode {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .viewer-mode .btn:not(.btn-join),
+        .viewer-mode input:not(.room-id-input),
+        .viewer-mode .slider {
+            pointer-events: none;
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="wheel-section">
+            <div class="wheel-container">
+                <div class="pointer"></div>
+                <canvas id="wheelCanvas"></canvas>
+            </div>
+            <div class="winner-display" id="winnerDisplay">
+                Add names and spin the wheel!
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalNames">0</div>
+                    <div class="stat-label">Names</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSpins">0</div>
+                    <div class="stat-label">Spins</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <h1>Wheel of Names</h1>
+            <p class="subtitle">Add names to the wheel and spin to pick a random winner!</p>
+            
+            <div class="live-section" id="liveSection" style="display: none;">
+                <div class="live-status">
+                    <div class="live-dot"></div>
+                    <span id="liveStatusText">Live</span>
+                </div>
+                <span id="viewerCount">0 viewers</span>
+            </div>
+
+            <div class="room-id-section" id="roomIdSection">
+                <label style="font-weight: 600; color: #333; display: block; margin-bottom: 5px;">Room ID:</label>
+                <div class="room-id-display" id="roomIdDisplay">
+                    <div class="room-id-text" id="roomIdText">Generating...</div>
+                    <button class="btn-copy" onclick="copyRoomId()">Copy</button>
+                </div>
+                <div style="margin-top: 10px; display: none;" id="joinRoomSection">
+                    <input type="text" class="room-id-input" id="joinRoomInput" placeholder="Enter Room ID to watch">
+                    <button class="btn-join" onclick="joinRoom()" style="width: 100%; margin-top: 10px;">Join Room</button>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <a href="#" onclick="showJoinSection(); return false;">Join someone else's room</a> | 
+                    <a href="#" onclick="createNewRoom(); return false;">Create new room</a>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="nameInput" placeholder="Enter a name..." onkeypress="handleKeyPress(event)">
+                <button class="btn btn-primary" onclick="addName()">Add</button>
+            </div>
+
+            <div class="spin-controls">
+                <label for="spinIntensity">Spin Intensity: <span id="spinIntensityLabel">Medium</span></label>
+                <div class="slider-container">
+                    <input type="range" id="spinIntensity" class="slider" min="1" max="10" value="5" oninput="updateSpinLabel()">
+                    <div class="slider-value" id="spinValue">5</div>
+                </div>
+                <div class="slider-info">
+                    <span>Quick (1)</span>
+                    <span>Epic (10)</span>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" onclick="spinWheel()" id="spinBtn">Spin Wheel</button>
+                <button class="btn btn-secondary" onclick="shuffleNames()">Shuffle</button>
+            </div>
+
+            <button class="btn btn-danger btn-large" onclick="clearAll()">Clear All</button>
+
+            <div class="names-list" id="namesList">
+                <div class="empty-state">No names added yet. Add names to get started!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCtF5L9UbhmpjEwp1wy9J_MTKgzpQPSJNU",
+            authDomain: "wheel-of-names-wc.firebaseapp.com",
+            databaseURL: "https://wheel-of-names-wc-default-rtdb.firebaseio.com",
+            projectId: "wheel-of-names-wc",
+            storageBucket: "wheel-of-names-wc.firebasestorage.app",
+            messagingSenderId: "573818760236",
+            appId: "1:573818760236:web:025ecdff96b98cc3207589",
+            measurementId: "G-5DC9L7DFG4"
+        };
+
+        // Initialize Firebase (will work even without config for demo)
+        let database;
+        let roomId = null;
+        let isHost = true;
+        let isViewer = false;
+        let isConnected = false;
+        
+        try {
+            if (typeof firebase !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+            }
+        } catch (e) {
+            console.log('Firebase not configured. Using local mode.');
+        }
+
+        let names = [];
+        let isSpinning = false;
+        let totalSpins = 0;
+        let canvas, ctx;
+        let currentRotation = 0;
+        let colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+            '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52BE80',
+            '#EC7063', '#5DADE2', '#58D68D', '#F4D03F', '#AF7AC5',
+            '#85C1E9', '#F39C12', '#E74C3C', '#3498DB', '#2ECC71'
+        ];
+
+        function generateRoomId() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function createNewRoom() {
+            roomId = generateRoomId();
+            isHost = true;
+            isViewer = false;
+            document.getElementById('roomIdText').textContent = roomId;
+            document.getElementById('joinRoomSection').style.display = 'none';
+            document.getElementById('liveSection').style.display = 'flex';
+            document.getElementById('liveSection').classList.remove('viewer');
+            document.getElementById('liveStatusText').textContent = 'Hosting';
+            
+            if (database) {
+                connectToRoom();
+            }
+        }
+
+        function showJoinSection() {
+            document.getElementById('joinRoomSection').style.display = 'block';
+        }
+
+        function joinRoom() {
+            const input = document.getElementById('joinRoomInput');
+            const id = input.value.trim().toUpperCase();
+            if (id.length === 6) {
+                roomId = id;
+                isHost = false;
+                isViewer = true;
+                document.getElementById('roomIdText').textContent = roomId;
+                document.getElementById('joinRoomSection').style.display = 'none';
+                document.getElementById('liveSection').style.display = 'flex';
+                document.getElementById('liveSection').classList.add('viewer');
+                document.getElementById('liveStatusText').textContent = 'Watching';
+                document.querySelector('.controls-section').classList.add('viewer-mode');
+                
+                if (database) {
+                    connectToRoom();
+                }
+            } else {
+                alert('Please enter a valid 6-character Room ID');
+            }
+        }
+
+        function copyRoomId() {
+            const roomIdText = document.getElementById('roomIdText').textContent;
+            navigator.clipboard.writeText(roomIdText).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        function connectToRoom() {
+            if (!database || !roomId) return;
+            
+            const roomRef = database.ref(`rooms/${roomId}`);
+            
+            // Listen for changes
+            roomRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // Sync names
+                    if (data.names && Array.isArray(data.names)) {
+                        names = data.names;
+                        updateNamesList();
+                        updateStats();
+                        drawWheel();
+                    }
+                    
+                    // Sync total spins
+                    if (data.totalSpins !== undefined) {
+                        totalSpins = data.totalSpins;
+                        document.getElementById('totalSpins').textContent = totalSpins;
+                    }
+                    
+                    // Sync current rotation
+                    if (data.currentRotation !== undefined) {
+                        currentRotation = data.currentRotation;
+                        drawWheel();
+                    }
+                    
+                    // Sync winner
+                    if (data.winner) {
+                        document.getElementById('winnerDisplay').textContent = `Winner: ${data.winner}! 🎉`;
+                    }
+                    
+                    // Update viewer count
+                    if (data.viewers !== undefined) {
+                        document.getElementById('viewerCount').textContent = `${data.viewers} viewer${data.viewers !== 1 ? 's' : ''}`;
+                    }
+                }
+            });
+            
+            // Listen for spin events
+            roomRef.child('spinEvent').on('value', (snapshot) => {
+                const spinData = snapshot.val();
+                if (spinData && !isHost) {
+                    // Viewer receives spin command
+                    triggerSpinFromRemote(spinData);
+                }
+            });
+            
+            isConnected = true;
+            
+            // Update viewer count
+            if (isHost) {
+                updateViewerCount();
+            } else {
+                incrementViewerCount();
+            }
+        }
+
+        function updateViewerCount() {
+            if (!database || !roomId || !isHost) return;
+            const roomRef = database.ref(`rooms/${roomId}`);
+            roomRef.child('viewers').once('value', (snapshot) => {
+                const count = snapshot.val() || 0;
+                roomRef.update({ viewers: count });
+            });
+        }
+
+        function incrementViewerCount() {
+            if (!database || !roomId || isHost) return;
+            const roomRef = database.ref(`rooms/${roomId}`);
+            roomRef.child('viewers').transaction((current) => {
+                return (current || 0) + 1;
+            });
+        }
+
+        function syncToFirebase() {
+            if (!database || !roomId || !isHost || !isConnected) return;
+            
+            const roomRef = database.ref(`rooms/${roomId}`);
+            roomRef.update({
+                names: names,
+                totalSpins: totalSpins,
+                currentRotation: currentRotation,
+                lastUpdate: Date.now()
+            });
+        }
+
+        function broadcastSpin(spinData) {
+            if (!database || !roomId || !isHost) return;
+            const roomRef = database.ref(`rooms/${roomId}`);
+            roomRef.child('spinEvent').set(spinData);
+            // Clear after a delay
+            setTimeout(() => {
+                roomRef.child('spinEvent').remove();
+            }, 100);
+        }
+
+        function triggerSpinFromRemote(spinData) {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('spinBtn').textContent = 'Spinning...';
+            document.getElementById('winnerDisplay').textContent = 'Spinning...';
+            
+            const { intensity, duration, spins, randomAngle, startRotation } = spinData;
+            const totalRotation = spins * Math.PI * 2 + randomAngle;
+            const startTime = Date.now();
+            currentRotation = startRotation;
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentRotation = startRotation + totalRotation * easeOut;
+                
+                drawWheel();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Calculate winner
+                    // Pointer is fixed at top (angle = -π/2 in canvas coordinates)
+                    // Segments are drawn starting from -π/2, so segment i spans:
+                    //   from: i * anglePerItem - π/2
+                    //   to: (i+1) * anglePerItem - π/2
+                    // After rotation by currentRotation, segment i is at:
+                    //   from: i * anglePerItem - π/2 + currentRotation
+                    //   to: (i+1) * anglePerItem - π/2 + currentRotation
+                    // We need to find which segment contains the pointer at -π/2
+                    const anglePerItem = (Math.PI * 2) / names.length;
+                    
+                    // Find which segment contains angle -π/2 after rotation
+                    // Solve: i * anglePerItem - π/2 + currentRotation <= -π/2 < (i+1) * anglePerItem - π/2 + currentRotation
+                    // This simplifies to: i * anglePerItem + currentRotation <= 0 < (i+1) * anglePerItem + currentRotation
+                    // So: i = floor(-currentRotation / anglePerItem)
+                    let winnerIndex = Math.floor(-currentRotation / anglePerItem);
+                    
+                    // Normalize to valid index range
+                    winnerIndex = ((winnerIndex % names.length) + names.length) % names.length;
+                    
+                    const winner = names[winnerIndex];
+                    document.getElementById('winnerDisplay').textContent = `Winner: ${winner}! 🎉`;
+                    
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('spinBtn').textContent = 'Spin Wheel';
+                }
+            }
+            
+            animate();
+        }
+
+        function init() {
+            canvas = document.getElementById('wheelCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            drawWheel();
+            
+            // Auto-create room on load
+            createNewRoom();
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const size = Math.min(container.offsetWidth, 500);
+            canvas.width = size;
+            canvas.height = size;
+            drawWheel();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                addName();
+            }
+        }
+
+        function addName() {
+            if (isViewer) return;
+            
+            const input = document.getElementById('nameInput');
+            const name = input.value.trim();
+            
+            if (name === '') {
+                return;
+            }
+            
+            names.push(name);
+            input.value = '';
+            updateNamesList();
+            updateStats();
+            drawWheel();
+            syncToFirebase();
+        }
+
+        function removeName(index) {
+            if (isViewer) return;
+            
+            names.splice(index, 1);
+            updateNamesList();
+            updateStats();
+            drawWheel();
+            syncToFirebase();
+        }
+
+        function updateNamesList() {
+            const list = document.getElementById('namesList');
+            
+            if (names.length === 0) {
+                list.innerHTML = '<div class="empty-state">No names added yet. Add names to get started!</div>';
+                return;
+            }
+            
+            list.innerHTML = names.map((name, index) => `
+                <div class="name-item">
+                    <span class="name-text">${name}</span>
+                    <button class="btn-remove" onclick="removeName(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('totalNames').textContent = names.length;
+        }
+
+        function shuffleNames() {
+            if (isViewer || names.length === 0) return;
+            
+            for (let i = names.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [names[i], names[j]] = [names[j], names[i]];
+            }
+            
+            updateNamesList();
+            drawWheel();
+            syncToFirebase();
+        }
+
+        function clearAll() {
+            if (isViewer) return;
+            
+            if (confirm('Are you sure you want to clear all names?')) {
+                names = [];
+                updateNamesList();
+                updateStats();
+                drawWheel();
+                document.getElementById('winnerDisplay').textContent = 'Add names and spin the wheel!';
+                syncToFirebase();
+            }
+        }
+
+        function drawWheel() {
+            if (names.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#f0f0f0';
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2 - 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#999';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Add names to start', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) / 2 - 10;
+            const anglePerItem = (Math.PI * 2) / names.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(currentRotation);
+
+            names.forEach((name, index) => {
+                const startAngle = index * anglePerItem - Math.PI / 2;
+                const endAngle = (index + 1) * anglePerItem - Math.PI / 2;
+
+                // Draw segment
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.rotate((startAngle + endAngle) / 2);
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${Math.min(16, radius / 8)}px Arial`;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 3;
+                
+                const textX = radius * 0.6;
+                const maxWidth = radius * 0.5;
+                let displayName = name;
+                
+                // Truncate long names
+                const metrics = ctx.measureText(name);
+                if (metrics.width > maxWidth) {
+                    displayName = name.substring(0, Math.floor(name.length * (maxWidth / metrics.width))) + '...';
+                }
+                
+                ctx.fillText(displayName, textX, 0);
+                ctx.restore();
+            });
+
+            ctx.restore();
+        }
+
+        function updateSpinLabel() {
+            const slider = document.getElementById('spinIntensity');
+            const value = parseInt(slider.value);
+            const label = document.getElementById('spinIntensityLabel');
+            const valueDisplay = document.getElementById('spinValue');
+            
+            valueDisplay.textContent = value;
+            
+            // Update label text based on value
+            if (value <= 2) {
+                label.textContent = 'Quick';
+            } else if (value <= 4) {
+                label.textContent = 'Medium';
+            } else if (value <= 7) {
+                label.textContent = 'Long';
+            } else {
+                label.textContent = 'Epic';
+            }
+        }
+
+        function spinWheel() {
+            if (isViewer) return;
+            
+            if (names.length === 0) {
+                alert('Please add at least one name before spinning!');
+                return;
+            }
+
+            if (isSpinning) {
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('spinBtn').textContent = 'Spinning...';
+            document.getElementById('winnerDisplay').textContent = 'Spinning...';
+
+            // Get spin intensity from slider (1-10)
+            const intensity = parseInt(document.getElementById('spinIntensity').value);
+            
+            // Calculate duration: 1-2 seconds for intensity 1, up to 8-12 seconds for intensity 10
+            const minDuration = 1000 + (intensity - 1) * 700; // 1000ms to 7300ms
+            const maxDuration = 2000 + (intensity - 1) * 1000; // 2000ms to 11000ms
+            const duration = minDuration + Math.random() * (maxDuration - minDuration);
+            
+            // Calculate rotations: 2-4 for intensity 1, up to 8-15 for intensity 10
+            const minRotations = 2 + (intensity - 1) * 0.6; // 2 to 7.4
+            const maxRotations = 4 + (intensity - 1) * 1.1; // 4 to 13.9
+            const spins = minRotations + Math.random() * (maxRotations - minRotations);
+            
+            const randomAngle = Math.random() * Math.PI * 2;
+            const totalRotation = spins * Math.PI * 2 + randomAngle;
+            const startTime = Date.now();
+            const startRotation = currentRotation;
+
+            // Broadcast spin to viewers
+            if (isConnected) {
+                broadcastSpin({
+                    intensity,
+                    duration,
+                    spins,
+                    randomAngle,
+                    startRotation,
+                    timestamp: Date.now()
+                });
+            }
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function for smooth deceleration
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentRotation = startRotation + totalRotation * easeOut;
+
+                drawWheel();
+                
+                // Sync rotation during spin
+                if (isConnected && progress < 1) {
+                    syncToFirebase();
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Calculate winner
+                    // Pointer is fixed at top (angle = -π/2 in canvas coordinates)
+                    // Segments are drawn starting from -π/2, so segment i spans:
+                    //   from: i * anglePerItem - π/2
+                    //   to: (i+1) * anglePerItem - π/2
+                    // After rotation by currentRotation, segment i is at:
+                    //   from: i * anglePerItem - π/2 + currentRotation
+                    //   to: (i+1) * anglePerItem - π/2 + currentRotation
+                    // We need to find which segment contains the pointer at -π/2
+                    const anglePerItem = (Math.PI * 2) / names.length;
+                    
+                    // Find which segment contains angle -π/2 after rotation
+                    // Solve: i * anglePerItem - π/2 + currentRotation <= -π/2 < (i+1) * anglePerItem - π/2 + currentRotation
+                    // This simplifies to: i * anglePerItem + currentRotation <= 0 < (i+1) * anglePerItem + currentRotation
+                    // So: i = floor(-currentRotation / anglePerItem)
+                    let winnerIndex = Math.floor(-currentRotation / anglePerItem);
+                    
+                    // Normalize to valid index range
+                    winnerIndex = ((winnerIndex % names.length) + names.length) % names.length;
+
+                    const winner = names[winnerIndex];
+                    document.getElementById('winnerDisplay').textContent = `Winner: ${winner}! 🎉`;
+                    totalSpins++;
+                    document.getElementById('totalSpins').textContent = totalSpins;
+                    
+                    // Sync final state
+                    if (isConnected) {
+                        syncToFirebase();
+                        const roomRef = database.ref(`rooms/${roomId}`);
+                        roomRef.update({ winner: winner });
+                    }
+                    
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('spinBtn').textContent = 'Spin Wheel';
+                }
+            }
+
+            animate();
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
+
