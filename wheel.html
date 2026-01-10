@@ -607,7 +607,18 @@
             document.getElementById('liveStatusText').textContent = 'Hosting';
             
             if (database) {
-                connectToRoom();
+                // Initialize room with createdAt timestamp for security
+                const roomRef = database.ref(`rooms/${roomId}`);
+                roomRef.set({
+                    names: [],
+                    totalSpins: 0,
+                    currentRotation: 0,
+                    viewers: 0,
+                    createdAt: Date.now(),
+                    lastUpdate: Date.now()
+                }).then(() => {
+                    connectToRoom();
+                });
             }
         }
 
@@ -730,12 +741,19 @@
             if (!database || !roomId || !isHost || !isConnected) return;
             
             const roomRef = database.ref(`rooms/${roomId}`);
-            roomRef.update({
+            const updateData = {
                 names: names,
                 totalSpins: totalSpins,
                 currentRotation: currentRotation,
                 lastUpdate: Date.now()
-            });
+            };
+            
+            // Only update if names array is reasonable size (security)
+            if (names.length <= 100) {
+                roomRef.update(updateData).catch((error) => {
+                    console.error('Firebase sync error:', error);
+                });
+            }
         }
 
         function broadcastSpin(spinData) {
@@ -896,11 +914,26 @@
             
             if (confirm('Are you sure you want to clear all names?')) {
                 names = [];
+                totalSpins = 0;
+                currentRotation = 0;
                 updateNamesList();
                 updateStats();
                 drawWheel();
                 document.getElementById('winnerDisplay').textContent = 'Add names and spin the wheel!';
-                syncToFirebase();
+                
+                // Update Firebase with cleared state
+                if (database && roomId && isConnected) {
+                    const roomRef = database.ref(`rooms/${roomId}`);
+                    roomRef.update({
+                        names: [],
+                        totalSpins: 0,
+                        currentRotation: 0,
+                        winner: null,
+                        lastUpdate: Date.now()
+                    }).catch((error) => {
+                        console.error('Firebase clear error:', error);
+                    });
+                }
             }
         }
 
