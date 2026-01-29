@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names - Random Name Picker</title>
+    <!-- Favicon: Use a generic emoji or similar if no real ico exists, or link to a placeholder -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎡</text></svg>">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="wheel-section">
+            <div class="wheel-container">
+                <div class="pointer"></div>
+                <canvas id="wheelCanvas"></canvas>
+            </div>
+            <div class="winner-display" id="winnerDisplay">
+                Add names and spin the wheel!
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalNames">0</div>
+                    <div class="stat-label">Names</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSpins">0</div>
+                    <div class="stat-label">Spins</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <h1>Wheel of Names</h1>
+            <p class="subtitle">Add names to the wheel and spin to pick a random winner!</p>
+
+            <div class="live-section" id="liveSection" style="display: none;">
+                <div class="live-status">
+                    <div class="live-dot"></div>
+                    <span id="liveStatusText">Live</span>
+                </div>
+                <span id="viewerCount">0 viewers</span>
+            </div>
+
+            <div class="room-id-section" id="roomIdSection">
+                <label style="font-weight: 600; color: #333; display: block; margin-bottom: 5px;">Room ID:</label>
+                <div class="room-id-display" id="roomIdDisplay">
+                    <div class="room-id-text" id="roomIdText">Generating...</div>
+                    <button class="btn-copy" onclick="copyRoomId()">Copy</button>
+                </div>
+                <div style="margin-top: 10px; display: none;" id="joinRoomSection">
+                    <input type="text" class="room-id-input" id="joinRoomInput" placeholder="Enter Room ID to watch">
+                    <button class="btn-join" onclick="joinRoom()" style="width: 100%; margin-top: 10px;">Join
+                        Room</button>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <a href="#" onclick="showJoinSection(); return false;">Join someone else's room</a> |
+                    <a href="#" onclick="createNewRoom(); return false;">Create new room</a>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="nameInput" placeholder="Enter a name..." onkeypress="handleKeyPress(event)">
+                <button class="btn btn-primary" onclick="addName()">Add</button>
+            </div>
+
+            <div class="spin-controls">
+                <label for="spinIntensity">Spin Intensity: <span id="spinIntensityLabel">Medium</span></label>
+                <div class="slider-container">
+                    <input type="range" id="spinIntensity" class="slider" min="1" max="10" value="5"
+                        oninput="updateSpinLabel()">
+                    <div class="slider-value" id="spinValue">5</div>
+                </div>
+                <div class="slider-info">
+                    <span>Quick (1)</span>
+                    <span>Epic (10)</span>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" onclick="spinWheel()" id="spinBtn">Spin Wheel</button>
+                <button class="btn btn-secondary" onclick="shuffleNames()">Shuffle</button>
+            </div>
+
+            <button class="btn btn-danger btn-large" onclick="clearAll()">Clear All</button>
+
+            <div class="names-list" id="namesList">
+                <div class="empty-state">No names added yet. Add names to get started!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
