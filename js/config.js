@@ -11,12 +11,12 @@
  * If this config is empty or invalid, the app will run in "Local Mode".
  */
 const firebaseConfig = {
-    apiKey: "AIzaSyCtF5L9UbhmpjEwp1wy9J_MTKgzpQPSJNU",
-    authDomain: "wheel-of-names-wc.firebaseapp.com",
-    databaseURL: "https://wheel-of-names-wc-default-rtdb.firebaseio.com",
-    projectId: "wheel-of-names-wc",
-    storageBucket: "wheel-of-names-wc.firebasestorage.app",
-    messagingSenderId: "573818760236",
-    appId: "1:573818760236:web:025ecdff96b98cc3207589",
-    measurementId: "G-5DC9L7DFG4"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "your-project.firebaseapp.com",
+    databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+    projectId: "your-project",
+    storageBucket: "your-project.firebasestorage.app",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef123456",
+    measurementId: "G-ABCDEF123"
 };
